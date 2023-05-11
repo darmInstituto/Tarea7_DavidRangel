@@ -26,7 +26,7 @@ namespace Tarea7_DavidRangel
                 if (!listRuts.Contains(txtRut.Text))
                 {
                     StreamWriter sw = File.AppendText(ruta);
-                    string registro = String.Format("{0};{1};{2}", txtRut.Text, txtNombre.Text, txtNota.Text);
+                    string registro = String.Format("{0};{1};{2}", txtRut.Text, txtNombre.Text, (double.Parse(txtNota.Text)).ToString());
                     sw.WriteLine(registro);
                     sw.Close();
                     listRuts.Add(txtRut.Text);
@@ -145,30 +145,79 @@ namespace Tarea7_DavidRangel
 
         private void button3_Click(object sender, EventArgs e)
         {
+            string[] res = buscarRut(textBox1.Text);
+
+            txtRut.Text = res[0];
+            txtNombre.Text = res[1];
+            txtNota.Text = res[2];
+        }
+
+        string[] buscarRut(string rut)
+        {
             StreamReader sr = new StreamReader(ruta);
             string lectura;
             lectura = sr.ReadLine();
-            
-            string nombreFinded="", rutFinded="", notaFinded="";
+
+            string nombreFinded = "", rutFinded = "", notaFinded = "";
             while (lectura != null)
             {
                 string[] registro = lectura.Split(';');
 
-                if (registro[0] == textBox1.Text)
-                {                   
+                if (registro[0] == rut)
+                {
                     rutFinded = registro[0];
                     nombreFinded = registro[1];
                     notaFinded = registro[2];
-                }             
+                }
                 lectura = sr.ReadLine();
             }
             sr.Close();
+            return new string[] { rutFinded, nombreFinded, notaFinded };
+        }
 
-            txtRut.Text = rutFinded;
-            txtNombre.Text = nombreFinded;
-            txtNota.Text = notaFinded;
+        private void button4_Click(object sender, EventArgs e)
+        {
+            
 
+            string[] resultados = buscarRut(txtRut.Text);
 
+            if (resultados[0] != "" && MessageBox.Show("¿Desea eliminar registro?", "Advertencia", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                StreamReader sr = new StreamReader(ruta);
+                string lectura;
+                lectura = sr.ReadLine();
+                string[,] tabla = new string[listRuts.Count, 3];
+                int i = 0;
+                while (lectura != null)
+                {
+                    string[] registro = lectura.Split(';');
+
+                    for (int col = 0; col < 3; col++)
+                    {
+                        if (registro[0] != txtRut.Text)
+                        {
+                            tabla[i, col] = registro[col];                   
+                        }
+                        else
+                        {
+                            listRuts.Remove(txtRut.Text);
+                        }
+                    }
+                    lectura = sr.ReadLine();
+                    if (registro[0] != txtRut.Text)
+                    {
+                        i++;
+                    }                   
+                }
+                sr.Close();
+
+                string texto = "";
+                for (int fil = 0; fil < tabla.GetLength(0); fil++)
+                {
+                    texto += String.Format("{0};{1};{2}\n", tabla[fil, 0], tabla[fil, 1], tabla[fil, 2]);
+                }
+                File.WriteAllText(ruta, texto);
+            }          
         }
     }
 }
